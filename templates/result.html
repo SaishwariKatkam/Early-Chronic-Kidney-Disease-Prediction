@@ -21,13 +21,6 @@
             justify-content: center;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-            width: 100%;
-        }
-
         nav {
             display: flex;
             justify-content: space-between;
@@ -53,15 +46,13 @@
             transition: color 0.3s;
         }
 
-        .nav-links a:hover {
-            color: #3498db;
-        }
+        .nav-links a:hover { color: #3498db; }
 
         .result-container {
             background: white;
             padding: 3rem;
             border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
             text-align: center;
             max-width: 600px;
             width: 100%;
@@ -84,21 +75,45 @@
             margin: 2rem 0;
         }
 
-        h1 {
-            color: #2c3e50;
-            margin-bottom: 1.5rem;
+        .result-error {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 2rem;
+            border-radius: 8px;
+            margin: 2rem 0;
         }
 
-        h2 {
-            margin-bottom: 1rem;
-            font-size: 1.8rem;
-        }
+        h1 { color: #2c3e50; margin-bottom: 1.5rem; }
+        h2 { margin-bottom: 1rem; font-size: 1.8rem; }
 
         p {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             line-height: 1.6;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
         }
+
+        .confidence-badge {
+            display: inline-block;
+            padding: 0.4rem 1.2rem;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1rem;
+            margin: 0.5rem 0 1rem;
+        }
+
+        .badge-red   { background: #e74c3c; color: white; }
+        .badge-green { background: #27ae60; color: white; }
+        .badge-gray  { background: #95a5a6; color: white; }
+
+        .advice {
+            font-size: 0.95rem;
+            color: inherit;
+            opacity: 0.85;
+            font-style: italic;
+            margin-top: 0.5rem;
+        }
+
+        .icon { font-size: 3.5rem; margin-bottom: 0.5rem; }
 
         .action-buttons {
             display: flex;
@@ -115,36 +130,10 @@
             transition: all 0.3s ease;
         }
 
-        .btn-primary {
-            background-color: #3498db;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background-color: #2980b9;
-        }
-
-        .btn-secondary {
-            background-color: #95a5a6;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background-color: #7f8c8d;
-        }
-
-        .icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-        }
-
-        .positive-icon {
-            color: #e74c3c;
-        }
-
-        .negative-icon {
-            color: #27ae60;
-        }
+        .btn-primary  { background-color: #3498db; color: white; }
+        .btn-primary:hover  { background-color: #2980b9; }
+        .btn-secondary { background-color: #95a5a6; color: white; }
+        .btn-secondary:hover { background-color: #7f8c8d; }
     </style>
 </head>
 <body>
@@ -158,36 +147,46 @@
         </div>
     </nav>
 
-    <div class="container">
-        <div class="result-container">
-            <h1>Prediction Result</h1>
+    <div class="result-container">
+        <h1>Prediction Result</h1>
 
-            {% if prediction_text == "CKD Detected" %}
-            <div class="result-positive">
-                <div class="icon positive-icon">⚠</div>
-                <h2>Chronic Kidney Disease Detected</h2>
-                <p>The analysis indicates a high probability of Chronic Kidney Disease based on the provided parameters.</p>
-                <p>Please consult with a healthcare professional for a comprehensive evaluation and appropriate medical advice.</p>
+        {% if color == 'red' %}
+        <!-- ── CKD DETECTED ── -->
+        <div class="result-positive">
+            <div class="icon">⚠️</div>
+            <h2>Chronic Kidney Disease Detected</h2>
+            <div class="confidence-badge badge-red">
+                Confidence: {{ confidence }}%
             </div>
-            {% elif prediction_text == "No CKD" %}
-            <div class="result-negative">
-                <div class="icon negative-icon">✓</div>
-                <h2>Chronic Kidney Disease Not Detected</h2>
-                <p>The analysis indicates a low probability of Chronic Kidney Disease based on the provided parameters.</p>
-                <p>However, regular check-ups are still recommended for maintaining kidney health.</p>
-            </div>
-            {% else %}
-            <div class="result-positive">
-                <div class="icon positive-icon">⚠</div>
-                <h2>Invalid Input or No Result</h2>
-                <p>We couldn't determine the result. Please try again.</p>
-            </div>
-            {% endif %}
+            <p>The model indicates signs of Chronic Kidney Disease based on the provided parameters.</p>
+            <p class="advice">{{ advice }}</p>
+        </div>
 
-            <div class="action-buttons">
-                <a href="{{ url_for('home') }}" class="btn btn-secondary">Back to Home</a>
-                <a href="{{ url_for('predict') }}" class="btn btn-primary">New Prediction</a>
+        {% elif color == 'green' %}
+        <!-- ── NO CKD ── -->
+        <div class="result-negative">
+            <div class="icon">✅</div>
+            <h2>No Chronic Kidney Disease Detected</h2>
+            <div class="confidence-badge badge-green">
+                Confidence: {{ confidence }}%
             </div>
+            <p>The model does not indicate CKD based on the provided parameters.</p>
+            <p class="advice">{{ advice }}</p>
+        </div>
+
+        {% else %}
+        <!-- ── ERROR ── -->
+        <div class="result-error">
+            <div class="icon">⚠</div>
+            <h2>Something Went Wrong</h2>
+            <p>{{ prediction_text }}</p>
+            <p class="advice">{{ advice }}</p>
+        </div>
+        {% endif %}
+
+        <div class="action-buttons">
+            <a href="{{ url_for('home') }}"    class="btn btn-secondary">Back to Home</a>
+            <a href="{{ url_for('predict') }}" class="btn btn-primary">New Prediction</a>
         </div>
     </div>
 </body>
